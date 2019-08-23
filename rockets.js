@@ -18,6 +18,13 @@ class Rocket {
         this.fitness = -dist(this.position.x, this.position.y, goal.x, goal.y);
     }
 
+    generateMovements() {
+        this.movements;
+        for (let j = 0; j < 5; j++) {
+            movements.push({x : random(-0.3, 0.3), y : random(-0.3, 0.3), cd : random(10, 30)});
+        }
+    }
+
     update() {
         // run the movements of the rocket
         if (this.movementCooldown <= 0) {

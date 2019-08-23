@@ -1,26 +1,23 @@
 // rockets and amount of rockets to display
 let rockets = [];
 let rocketCount = 40;
-
-// percent rate of mutation on movements
 let mutationRate = 5;
-
-// current generation
-let generationCount = 0;
-
-// goal position to reach
-let goal = {x : 700, y : 400};
+let generationCount = 0; // current generation
+let goal = {x : 700, y : 400}; // goal position to reach
 
 function setup() {
     createCanvas(window.innerWidth, window.innerHeight);
+    // initialize rockets
     for (let i = 0; i < rocketCount; i++) {
-        // generate 5 random acceleration vectors for each rocket
-        let movement = [];
-        for (let j = 0; j < 5; j++) {
-            movement.push({x : random(-0.15, 0.15), y : random(-0.15, 0.15), cd : random(10, 40)});
-        }
         rockets.push(new Rocket(movement));
+        rockets[i].generateMovements();
     }
+}
+
+function mouseClicked() {
+    // click mouse to change goal position
+    goal.x = mouseX;
+    goal.y = mouseY;
 }
 
 function draw() {
@@ -55,7 +52,6 @@ function draw() {
         // if a rocket has reached the goal, then stop animation
         if (dist(rockets[i].position.x, rockets[i].position.y, goal.x, goal.y) < 2) {
             noLoop();
-            console.log("achieved perfection");
         }
     }
     // draw generation count
@@ -80,7 +76,7 @@ function newGeneration() {
 
     // best rocket enters new generation untouched - make it white
     rockets.sort((a, b) => b.fitness - a.fitness);
-    rockets.splice(round(rockets.length / 2), round(rockets.length / 2)); // worst half of generation out of parent pool
+    rockets.splice(round(3 * rockets.length / 4), round(rockets.length / 4)); // worst quarter of generation out of parent pool
     childRockets.push(new Rocket(rockets[0].movements));
     childRockets[0].color = color(255, 255, 255);
 
@@ -92,30 +88,28 @@ function newGeneration() {
     }
     for (let i = 0; i < rockets.length; i++)
         rockets[i].fitness = (rockets[i].fitness / fitnessSum) * 100;
-
     while (childRockets.length < rocketCount) {
         // weighted parent selection
         let parent1 = getParent();
         let parent2 = getParent();
+        while (parent1 === parent2)
+            parent2 = getParent();
 
         // crossover
-        let newMovements = [...parent1.movements.slice(0, round(parent1.movements.length / 2)),
-            ...parent2.movements.slice(round(parent2.movements.length / 2))];
+        let len = round(parent2.movements.length / 5);
+        let part1 = parent1.movements.slice(0, 1);
+        let part2 = parent2.movements.slice(1, 2);
+        let part3 = parent1.movements.slice(2, 3);
+        let part4 = parent2.movements.slice(3, 4);
+        let part5 = parent1.movements.slice(4, 5);
+        let newMovements = [...part1, ...part2, ...part3, ...part4, ...part5];
 
         // apply mutation
-        for (let i = 0; i <= newMovements.length; i++) {
-            if (random(0, 100) <= mutationRate) {
-                newMovements[i] = {x : random(-0.1, 0.1), y : random(-0.1, 0.1), cd : random(20, 60)};
-                break;
-            }
+        for (let i = 0; i < newMovements.length; i++) {
+            if (random(0, 100) <= mutationRate)
+                newMovements[i] = {x : random(-0.3, 0.3), y : random(-0.3, 0.3), cd : random(10, 30)};
         }
         childRockets.push(new Rocket(newMovements));
     }
     rockets = childRockets;
-}
-
-
-function mouseClicked() {
-    goal.x = mouseX;
-    goal.y = mouseY;
 }
